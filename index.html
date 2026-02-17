@@ -246,8 +246,16 @@
         <div style="width: 100%; height: 160px; background: #eee; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #ccc;">
             <span class="material-icons-round" style="font-size: 50px;">image</span>
         </div>
-        <h1 class="word-main">ရိုဆေ</h1>
-        <p class="word-sub">Ro Say (မင်္ဂလာပါ)</p>
+        
+        <h1 class="word-main" id="taang-word">ရိုဆေ</h1>
+        <p class="word-sub" id="mm-word">Ro Say (မင်္ဂလာပါ)</p>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 40px;">
+            <button onclick="prevWord()" style="background:none; border:none; color:var(--maroon); cursor:pointer;"><span class="material-icons-round">arrow_back_ios</span></button>
+            <span id="word-count" style="font-size: 0.9rem; color: #888; font-weight: bold;">1 / 5</span>
+            <button onclick="nextWord()" style="background:none; border:none; color:var(--maroon); cursor:pointer;"><span class="material-icons-round">arrow_forward_ios</span></button>
+        </div>
+
         <div class="action-btns">
             <button class="circle-btn btn-audio"><span class="material-icons-round">volume_up</span></button>
             <button class="circle-btn btn-mic"><span class="material-icons-round">mic</span></button>
@@ -289,7 +297,7 @@
             modal.style.display = (modal.style.display === 'none' || modal.style.display === '') ? 'flex' : 'none';
         }
 
-        // ၂.၁။ Toggle Profile Modal (လက်ဖက်ညွန့်အတွက်)
+        // ၂.၁။ Toggle Profile Modal
         function toggleProfile() {
             const modal = document.getElementById('profile-modal');
             modal.style.display = (modal.style.display === 'none' || modal.style.display === '') ? 'flex' : 'none';
@@ -369,7 +377,45 @@
             if (!isDragging) toggleNote();
         });
 
-        // ၆။ App Initialization & Splash Screen
+        // --- ဒီနေရာမှစ၍ Logic အသစ်များ ---
+
+        // ၆။ အခြေခံစကားလုံးများ Data
+        const basicWords = [
+            { taang: "ရိုဆေ", mm: "Ro Say (မင်္ဂလာပါ)" },
+            { taang: "အိုးမ်ရောင်", mm: "Om Yaung (ထမင်းစားပြီးပြီလား)" },
+            { taang: "အိုးမ်ရောင်အေး", mm: "Om Yaung Ay (စားပြီးပါပြီ)" },
+            { taang: "ဂါးန်မား", mm: "Gan Mar (ကျေးဇူးတင်ပါတယ်)" },
+            { taang: "အူအေ", mm: "U-Ay (ဟုတ်ကဲ့/အင်း)" }
+        ];
+
+        let currentIndex = 0;
+
+        // Card ကို Update လုပ်မယ့် Function
+        function displayWord(index) {
+            const word = basicWords[index];
+            document.getElementById('taang-word').innerText = word.taang;
+            document.getElementById('mm-word').innerText = word.mm;
+            document.getElementById('word-count').innerText = `${index + 1} / ${basicWords.length}`;
+        }
+
+        // ရှေ့နောက်သွားမယ့် Function များ
+        function nextWord() {
+            hapticFeedback();
+            if (currentIndex < basicWords.length - 1) {
+                currentIndex++;
+                displayWord(currentIndex);
+            }
+        }
+
+        function prevWord() {
+            hapticFeedback();
+            if (currentIndex > 0) {
+                currentIndex--;
+                displayWord(currentIndex);
+            }
+        }
+
+        // ၇။ App Initialization & Splash Screen
         window.addEventListener('load', () => {
             const savedNote = localStorage.getItem('taang_rich_note');
             if(savedNote) document.getElementById('note-input').innerHTML = savedNote;
@@ -378,22 +424,34 @@
                 const splash = document.getElementById('splash-screen');
                 if(splash) splash.classList.add('fade-out');
             }, 3000);
+            
+            displayWord(0); // ပထမဆုံးစကားလုံးပြရန်
         });
 
-        // ၇။ Dialect Selector & Nav Interaction
+        // ၈။ Dialect Selector & Nav Interaction
         document.querySelectorAll('.dialect-btn, .nav-item').forEach(el => {
             el.addEventListener('click', function() {
-                // အဘိဓာန်နဲ့ ပြက္ခဒိန်အတွက်ဆိုရင် Active မဖြစ်အောင် (သို့) သက်ဆိုင်ရာ Page သွားအောင် လုပ်နိုင်ပါတယ်
-                // အခုလောလောဆယ် Active class ပြောင်းလဲမှုပဲ လုပ်ထားပါတယ်
                 hapticFeedback();
                 const selector = this.classList.contains('dialect-btn') ? '.dialect-btn.active' : '.nav-item.active';
                 const currentActive = document.querySelector(selector);
                 if(currentActive) currentActive.classList.remove('active');
                 this.classList.add('active');
+
+                // Button အရောင်ပြောင်းရုံတင်မဟုတ်ဘဲ Data ပါပြောင်းလဲရန်
+                if (this.classList.contains('dialect-btn')) {
+                    if (this.innerText === "အခြေခံ") {
+                        currentIndex = 0;
+                        displayWord(currentIndex);
+                    } else {
+                        document.getElementById('taang-word').innerText = "မကြာမီ...";
+                        document.getElementById('mm-word').innerText = "Coming Soon";
+                        document.getElementById('word-count').innerText = "-";
+                    }
+                }
             });
         });
 
-        // ၈။ Audio & Mic Interaction
+        // ၉။ Audio & Mic Interaction
         const micBtn = document.querySelector('.btn-mic');
         if(micBtn) {
             micBtn.addEventListener('click', () => {
